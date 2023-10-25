@@ -142,21 +142,6 @@ def create_training_graph(metrics_fun: Callable, train_feats: list, dev_feats: l
     plt.legend()
     plt.show()
 
-def plot_graph(plot_x, accuracies, precisions, f1s, recalls, kind): 
-    plt.grid(True)
-
-    plt.plot(plot_x, precisions, label="Precision")
-    plt.plot(plot_x, recalls, label="Recall")
-    plt.plot(plot_x, f1s, label="F1")
-    plt.plot(plot_x, accuracies, label="Accuracy")
-
-    plt.xlabel("Percentage of Training Data")
-    plt.ylabel("Metric Scores")
-    plt.title(f'Performance of {kind} Model')
-
-    plt.legend()
-    plt.show()
-
 
 def create_index(all_train_data_X: list) -> list:
     """

@@ -18,6 +18,7 @@ Add any functions to this file that you think will be useful to you in multiple 
 from collections import defaultdict, Counter
 # for tokenizing and precision, recall, f_measure, and accuracy functions
 import nltk
+from nltk.classify import NaiveBayesClassifier
 # for plotting
 import matplotlib.pyplot as plt
 # so that we can indicate a function in a type hint
@@ -73,9 +74,9 @@ def get_prfa(dev_y: list, preds: list, verbose=False) -> tuple:
     Returns:
         tuple of precision, recall, f1, and accuracy
     """
-    true_pos = true_neg = false_pos = false_neg = 0
+    true_pos, true_neg, false_pos, false_neg = 0, 0, 0, 0
     for i in range(len(preds)):
-        if preds[i] == "1":
+        if preds[i] == 1:
             if dev_y[i] == preds[i]:
                 true_pos += 1
             else:
@@ -89,25 +90,72 @@ def get_prfa(dev_y: list, preds: list, verbose=False) -> tuple:
     precision = (true_pos) / (true_pos + false_pos)
     recall = (true_pos) / (true_pos + false_neg)
     f1 = (true_pos) / (true_pos + (false_neg + false_pos) / 2)
+    if verbose:
+        print(f'Precision: {precision}')
+        print(f'Recall: {recall}')
+        print(f'F1 Score: {f1}')
+        print(f'Accuracy: {accuracy}')
     return precision, recall, f1, accuracy
 
 def create_training_graph(metrics_fun: Callable, train_feats: list, dev_feats: list, kind: str, savepath: str = None, verbose: bool = False) -> None:
     """
     Create a graph of the classifier's performance on the dev set as a function of the amount of training data.
     Args:
-        metrics_fun: a function that takes in training data and dev data and returns a tuple of metrics
+        metrics_fun: a function that takes in training data, dev data, and percentage and returns preds and labels for the dev set
         train_feats: a list of training data in the format [(feats, label), ...]
         dev_feats: a list of dev data in the format [(feats, label), ...]
         kind: the kind of model being used (will go in the title)
         savepath: the path to save the graph to (if None, the graph will not be saved)
         verbose: whether to print the metrics
     """
-    metrics_data = metrics_fun(train_feats, dev_feats)
-    if verbose:
-        print(metrics_data)
-    
-    pass
+    accuracies, precisions, f1s, recalls = [], [], [], []
+    plot_x = []
+    for i in range(10, 110, 10):
+        plot_x.append(i)
 
+        percentage = i / 100
+        preds, y_dev = metrics_fun(train_feats, dev_feats, percentage)
+        precision, recall, f1, accuracy = get_prfa(y_dev, preds)
+        if verbose:
+            print(f'Metrics when trained on {i}% of data')
+            print(f'Precision: {precision}')
+            print(f'Recall: {recall}')
+            print(f'F1 score: {f1}')
+            print(f'Accuracy: {accuracy}')
+
+        accuracies.append(accuracy)
+        precisions.append(precision)
+        f1s.append(f1)
+        recalls.append(recall)
+
+    plt.grid(True)
+
+    plt.plot(plot_x, precisions, label="Precision")
+    plt.plot(plot_x, recalls, label="Recall")
+    plt.plot(plot_x, f1s, label="F1")
+    plt.plot(plot_x, accuracies, label="Accuracy")
+
+    plt.xlabel("Percentage of Training Data")
+    plt.ylabel("Metric Scores")
+    plt.title(f'Performance of {kind} Model')
+
+    plt.legend()
+    plt.show()
+
+def plot_graph(plot_x, accuracies, precisions, f1s, recalls, kind): 
+    plt.grid(True)
+
+    plt.plot(plot_x, precisions, label="Precision")
+    plt.plot(plot_x, recalls, label="Recall")
+    plt.plot(plot_x, f1s, label="F1")
+    plt.plot(plot_x, accuracies, label="Accuracy")
+
+    plt.xlabel("Percentage of Training Data")
+    plt.ylabel("Metric Scores")
+    plt.title(f'Performance of {kind} Model')
+
+    plt.legend()
+    plt.show()
 
 
 def create_index(all_train_data_X: list) -> list:
@@ -122,7 +170,8 @@ def create_index(all_train_data_X: list) -> list:
     unraveled = []
     for data in all_train_data_X:
         unraveled = unraveled + data
-    return set(unraveled)
+    print(unraveled[:100])
+    return list(set(unraveled))
 
 
 def featurize(vocab: list, data_to_be_featurized_X: list, binary: bool = False, verbose: bool = False) -> list:

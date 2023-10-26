@@ -114,19 +114,20 @@ def create_training_graph(metrics_fun: Callable, train_feats: list, dev_feats: l
         plot_x.append(i)
 
         percentage = i / 100
-        preds, y_dev = metrics_fun(train_feats, dev_feats, percentage)
+        y_dev, preds = metrics_fun(train_feats, dev_feats, percentage)
         precision, recall, f1, accuracy = get_prfa(y_dev, preds)
-        if verbose:
-            print(f'Metrics when trained on {i}% of data')
-            print(f'Precision: {precision}')
-            print(f'Recall: {recall}')
-            print(f'F1 score: {f1}')
-            print(f'Accuracy: {accuracy}')
 
         accuracies.append(accuracy)
         precisions.append(precision)
         f1s.append(f1)
         recalls.append(recall)
+
+    if verbose:
+        print(f'Metrics for {kind} when trained on 100% of data')
+        print(f'Precision: {precisions[-1]}')
+        print(f'Recall: {recalls[-1]}')
+        print(f'F1 score: {f1s[-1]}')
+        print(f'Accuracy: {accuracies[-1]}')
 
     plt.grid(True)
 
@@ -140,6 +141,8 @@ def create_training_graph(metrics_fun: Callable, train_feats: list, dev_feats: l
     plt.title(f'Performance of {kind} Model')
 
     plt.legend()
+    if savepath:
+        plt.savefig(savepath)
     plt.show()
 
 

@@ -25,6 +25,26 @@ import matplotlib.pyplot as plt
 from typing import Callable
 nltk.download('punkt')
 
+def generate_tuples_from_file_new(training_file_path: str) -> list:
+    f = open(training_file_path, "r", encoding="latin1")
+    X = []
+    y = []
+
+    for review in f:
+        if len(review.strip()) == 0:
+            continue
+        dataInReview = review.strip().split("@")
+        t = tuple(dataInReview)
+        if t[1] == 'positive':
+            X.append(nltk.word_tokenize(t[0]))
+            y.append(1)
+        elif t[1] == 'negative':
+            X.append(nltk.word_tokenize(t[0]))
+            y.append(0)
+    f.close()  
+
+    return X, y
+
 def generate_tuples_from_file(training_file_path: str) -> list:
     """
     Generates tuples from file formated like:

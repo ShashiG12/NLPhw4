@@ -155,7 +155,6 @@ def create_index(all_train_data_X: list) -> list:
     unraveled = []
     for data in all_train_data_X:
         unraveled = unraveled + data
-    print(unraveled[:100])
     return list(set(unraveled))
 
 
